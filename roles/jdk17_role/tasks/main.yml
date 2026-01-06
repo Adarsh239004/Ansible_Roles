@@ -1,0 +1,37 @@
+- name: Install extraction tools
+  apt:
+    name:
+      - tar
+      - gzip
+      - bzip2
+      - xz-utils
+    state: present
+    update_cache: yes
+
+- name: Download JDK 17 tarball
+  get_url:
+    url: "{{ java17_download_url }}"
+    dest: /tmp/OpenJDK17U-jdk.tar.gz
+    mode: '0644'
+    force: yes
+
+- name: Extract JDK 17
+  unarchive:
+    src: /tmp/OpenJDK17U-jdk.tar.gz
+    dest: "{{ java_install_dir }}"
+    remote_src: yes
+    creates: "{{ java_install_dir }}/{{ java17_folder_name }}"
+
+- name: Configure java alternative for JDK 17
+  alternatives:
+    name: java
+    link: /usr/bin/java
+    path: "{{ java_install_dir }}/{{ java17_folder_name }}/bin/java"
+    priority: 1170
+
+- name: Configure javac alternative for JDK 17
+  alternatives:
+    name: javac
+    link: /usr/bin/javac
+    path: "{{ java_install_dir }}/{{ java17_folder_name }}/bin/javac"
+    priority: 1170

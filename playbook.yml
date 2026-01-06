@@ -1,0 +1,6 @@
+---
+- name: Deploying ansible roles
+  hosts: webservers
+  become: true
+  roles:
+    - roles/jdk21_role
