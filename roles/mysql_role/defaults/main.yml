@@ -1,0 +1,2 @@
+mysql_root_password: "Root@123"
+mysql_bind_address: "0.0.0.0"

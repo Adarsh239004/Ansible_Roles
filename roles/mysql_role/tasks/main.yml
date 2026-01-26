@@ -1,0 +1,41 @@
+- name: Install MySQL packages
+  apt:
+    name: "{{ mysql_packages }}"
+    state: present
+
+- name: Start MySQL service
+  service:
+    name: mysql
+    state: started
+    enabled: yes
+
+- name: Switch MySQL root authentication to mysql_native_password
+  command: >
+    mysql --socket=/var/run/mysqld/mysqld.sock
+    -e "ALTER USER 'root'@'localhost'
+        IDENTIFIED WITH mysql_native_password
+        BY '{{ mysql_root_password }}';"
+  args:
+    creates: /root/.mysql_root_password_set
+  become: yes
+
+- name: Mark MySQL root password as set
+  file:
+    path: /root/.mysql_root_password_set
+    state: touch
+    owner: root
+    group: root
+    mode: '0600'
+
+- name: Remove anonymous MySQL users
+  mysql_user:
+    name: ''
+    host_all: yes
+    state: absent
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+- name: Remove test database
+  mysql_db:
+    name: test
+    state: absent
+    login_unix_socket: /var/run/mysqld/mysqld.sock

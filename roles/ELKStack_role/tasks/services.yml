@@ -1,0 +1,50 @@
+- name: Create Elasticsearch directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: elasticsearch
+    group: elasticsearch
+    mode: '0755'
+  loop:
+    - /var/lib/elasticsearch
+    - /var/log/elasticsearch
+
+- name: Fix Elasticsearch config ownership
+  file:
+    path: /etc/elasticsearch
+    owner: root
+    group: elasticsearch
+    recurse: yes
+
+- name: Enable Elasticsearch
+  systemd:
+    name: elasticsearch
+    enabled: yes
+
+- name: Start Elasticsearch
+  systemd:
+    name: elasticsearch
+    state: started
+    enabled: yes
+
+- name: Wait for Elasticsearch to be available
+  uri:
+    url: http://localhost:9200
+    status_code: [200, 401]
+  register: es_check
+  retries: 12
+  delay: 5
+  until: es_check.status in [200, 401]
+  register: result
+  
+- name: Enable & start Kibana
+  systemd:
+    name: kibana
+    enabled: yes
+    state: started
+
+- name: Enable & start Logstash
+  systemd:
+    name: logstash
+    enabled: yes
+    state: started

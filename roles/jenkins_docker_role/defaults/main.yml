@@ -1,0 +1,5 @@
+jenkins_container_name: jenkins
+jenkins_image: jenkins/jenkins:lts
+jenkins_home: /opt/jenkins_home
+jenkins_http_port: 8080
+jenkins_agent_port: 50000

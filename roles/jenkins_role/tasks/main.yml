@@ -1,0 +1,57 @@
+- name: Create Jenkins user
+  user:
+    name: "{{ jenkins_user }}"
+    shell: /bin/bash
+    create_home: yes
+    state: present
+
+- name: Create Jenkins directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ jenkins_user }}"
+    group: "{{ jenkins_user }}"
+    mode: "0755"
+  loop:
+    - "{{ jenkins_install_dir }}"
+    - "{{ jenkins_home }}"
+
+- name: Download Jenkins WAR
+  get_url:
+    url: "{{ jenkins_war_url }}"
+    dest: "{{ jenkins_install_dir }}/jenkins.war"
+    owner: "{{ jenkins_user }}"
+    group: "{{ jenkins_user }}"
+    mode: "0755"
+
+- name: Create systemd service
+  template:
+    src: jenkins.service.j2
+    dest: /etc/systemd/system/jenkins.service
+  notify: Restart Jenkins
+
+- name: Reload systemd
+  command: systemctl daemon-reexec
+
+- name: Enable and start Jenkins
+  service:
+    name: jenkins
+    enabled: yes
+    state: started
+
+- name: Create init.groovy.d directory
+  file:
+    path: "{{ jenkins_home }}/init.groovy.d"
+    state: directory
+    owner: "{{ jenkins_user }}"
+    group: "{{ jenkins_user }}"
+    mode: "0755"
+
+- name: Add Jenkins security initialization script
+  template:
+    src: basic-security.groovy.j2
+    dest: "{{ jenkins_home }}/init.groovy.d/basic-security.groovy"
+    owner: "{{ jenkins_user }}"
+    group: "{{ jenkins_user }}"
+    mode: "0644"
+  notify: Restart Jenkins

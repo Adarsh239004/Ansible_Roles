@@ -1,0 +1,14 @@
+[Unit]
+Description=Jenkins Automation Server
+After=network.target
+
+[Service]
+User={{ jenkins_user }}
+Group={{ jenkins_user }}
+Environment=JENKINS_HOME={{ jenkins_home }}
+ExecStart=/usr/bin/java -jar {{ jenkins_install_dir }}/jenkins.war --httpPort={{ jenkins_port }}
+Restart=always
+SuccessExitStatus=143
+
+[Install]
+WantedBy=multi-user.target

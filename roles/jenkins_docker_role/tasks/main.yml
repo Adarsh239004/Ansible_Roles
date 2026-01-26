@@ -1,0 +1,43 @@
+- name: Create Jenkins home directory
+  file:
+    path: "{{ jenkins_home }}"
+    state: directory
+    owner: 1000
+    group: 1000
+    mode: '0755'
+
+- name: Pull Jenkins Docker image
+  docker_image:
+    name: "{{ jenkins_image }}"
+    source: pull
+
+- name: Run Jenkins container
+  docker_container:
+    name: "{{ jenkins_container_name }}"
+    image: "{{ jenkins_image }}"
+    state: started
+    restart_policy: always
+    ports:
+      - "{{ jenkins_http_port }}:8080"
+      - "{{ jenkins_agent_port }}:50000"
+    volumes:
+      - "{{ jenkins_home }}:/var/jenkins_home"
+  notify: restart jenkins container
+  
+- name: Wait for Jenkins to be available
+  wait_for:
+    host: 127.0.0.1
+    port: "{{ jenkins_http_port }}"
+    delay: 10
+    timeout: 120
+
+- name: Get Jenkins initial admin password
+  command: >
+    docker exec {{ jenkins_container_name }}
+    cat /var/jenkins_home/secrets/initialAdminPassword
+  register: jenkins_admin_password
+  changed_when: false
+
+- name: Show Jenkins initial admin password
+  debug:
+    msg: "Jenkins Admin Password: {{ jenkins_admin_password.stdout }}"

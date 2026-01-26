@@ -1,0 +1,78 @@
+- name: Install required packages
+  apt:
+    name:
+      - unzip
+      - curl
+    state: present
+    update_cache: yes
+
+- name: Create vault user
+  user:
+    name: "{{ vault_user }}"
+    system: yes
+    shell: /usr/sbin/nologin
+
+- name: Create Vault directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ vault_user }}"
+    group: "{{ vault_group }}"
+    mode: '0750'
+  loop:
+    - "{{ vault_config_dir }}"
+    - "{{ vault_data_dir }}"
+
+- name: Download Vault {{ vault_version }}
+  get_url:
+    url: "{{ vault_download_url }}"
+    dest: /tmp/vault_{{ vault_version }}.zip
+    mode: '0644'
+
+- name: Unzip Vault
+  unarchive:
+    src: /tmp/vault_{{ vault_version }}.zip
+    dest: /tmp
+    remote_src: yes
+
+- name: Install Vault binary
+  copy:
+    src: /tmp/vault
+    dest: "{{ vault_bin_path }}"
+    owner: root
+    group: root
+    mode: '0755'
+    remote_src: yes
+
+- name: Create Vault config
+  template:
+    src: vault.hcl.j2
+    dest: "{{ vault_config_dir }}/vault.hcl"
+    owner: "{{ vault_user }}"
+    group: "{{ vault_group }}"
+    mode: '0640'
+  notify: Restart Vault
+
+- name: Create systemd service file
+  copy:
+    dest: /etc/systemd/system/vault.service
+    mode: '0644'
+    content: |
+      [Unit]
+      Description=HashiCorp Vault
+      Requires=network-online.target
+      After=network-online.target
+
+      [Service]
+      User={{ vault_user }}
+      Group={{ vault_group }}
+      ExecStart={{ vault_bin_path }} server -config={{ vault_config_dir }}/vault.hcl
+      ExecReload=/bin/kill --signal HUP $MAINPID
+      Restart=on-failure
+      LimitMEMLOCK=infinity
+
+      [Install]
+      WantedBy=multi-user.target
+  notify:
+    - Reload systemd
+    - Restart Vault
