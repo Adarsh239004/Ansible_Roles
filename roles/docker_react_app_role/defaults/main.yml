@@ -1,0 +1,11 @@
+# React app settings
+react_app_name: react_app
+react_app_port: 3000
+
+# Paths
+react_build_source: build          # local machine (npm run build)
+react_app_target: /opt/react_app   # server path
+
+# Docker
+react_container_name: react-nginx
+nginx_image: nginx:alpine

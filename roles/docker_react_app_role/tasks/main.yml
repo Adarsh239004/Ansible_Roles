@@ -1,0 +1,26 @@
+- name: Create React app directory
+  file:
+    path: "{{ react_app_target }}"
+    state: directory
+    mode: '0755'
+
+- name: Copy React build files
+  copy:
+    src: "{{ react_build_source }}/"
+    dest: "{{ react_app_target }}/"
+
+- name: Pull Nginx Docker image
+  docker_image:
+    name: "{{ nginx_image }}"
+    source: pull
+
+- name: Run React app in Nginx container
+  docker_container:
+    name: "{{ react_container_name }}"
+    image: "{{ nginx_image }}"
+    state: started
+    restart_policy: always
+    ports:
+      - "{{ react_app_port }}:80"
+    volumes:
+      - "{{ react_app_target }}:/usr/share/nginx/html:ro"
