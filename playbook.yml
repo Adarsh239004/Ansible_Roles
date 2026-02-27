@@ -1,19 +1,20 @@
 ---
-- name: Deploy roles dynamically
-  hosts: "{{ HOSTS.split(',') }}"
-  become: true
-
-  tasks:
-    - name: Apply selected roles
-      include_role:
-        name: "{{ item }}"
-      loop: "{{ ROLES.split(',') }}"
-
-
-
-#- name: Deploying ansible roles
- # hosts: webservers
+#- name: Deploy roles dynamically
+ # hosts: "{{ HOSTS.split(',') }}"
   #become: true
-  #roles:
-   # - roles/jdk21_role
+
+ # tasks:
+  #  - name: Apply selected roles
+   #   include_role:
+    #    name: "{{ item }}"
+     # loop: "{{ ROLES.split(',') }}"
+
+
+
+- name: Deploying ansible roles
+  hosts: all
+  become: true
+  roles:
+    - roles/jdk21_role
+
 
