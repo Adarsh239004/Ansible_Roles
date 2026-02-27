@@ -18,10 +18,10 @@
 #    - roles/jdk21_role
 
 
----
 - name: Deploying Dynamic Role
   hosts: all
   become: yes
 
   roles:
     - "{{ role_name }}"
+
