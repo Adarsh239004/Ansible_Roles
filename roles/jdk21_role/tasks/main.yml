@@ -23,6 +23,13 @@
 - debug:
     var: jdk21_file.stdout
 
+- name: Create Java directory
+  file:
+    path: /opt/java
+    state: directory
+    mode: '0755'
+  become: yes
+  
 - name: Extract JDK 21
   unarchive:
     src: /tmp/OpenJDK21U-jdk.tar.gz
