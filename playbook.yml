@@ -11,10 +11,17 @@
 
 
 
-- name: Deploying ansible roles
+#- name: Deploying ansible roles
+#  hosts: all
+#  become: true
+#  roles:
+#    - roles/jdk21_role
+
+
+---
+- name: Deploying Dynamic Role
   hosts: all
-  become: true
+  become: yes
+
   roles:
-    - roles/jdk21_role
-
-
+    - "{{ role_name }}"
